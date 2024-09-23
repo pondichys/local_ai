@@ -1,0 +1,41 @@
+name: local_ai
+
+services:
+  ollama:
+    image: ollama/ollama:rocm
+    expose:
+      - 11434/tcp 
+    ports:
+      - 11434:11434/tcp
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      - HCC_AMDGPU_TARGET=gfx1030
+    devices:
+      - /dev/kfd
+      - /dev/dri
+    volumes:
+      - ollama:/root/.ollama
+    networks:
+      - ai
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    expose:
+      - 8080/tcp
+    ports:
+      - 8080:8080/tcp
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+    volumes:
+      - open-webui:/app/backend/data
+    networks:
+      - ai
+    depends_on:
+      - ollama
+
+networks:
+  ai:
+
+volumes:
+  ollama:
+  open-webui:
